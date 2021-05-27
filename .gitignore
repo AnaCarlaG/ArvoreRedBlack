@@ -1,0 +1,6 @@
+/ArvoreRedBlack/ArvoreRedBlack/obj/*.json
+/ArvoreRedBlack/ArvoreRedBlack/obj/*.props
+/ArvoreRedBlack/ArvoreRedBlack/obj/*.targets
+/ArvoreRedBlack/ArvoreRedBlack/obj/*.cache
+/ArvoreRedBlack/ArvoreRedBlack/obj/Debug/netcoreapp3.1/*.cs
+/ArvoreRedBlack/ArvoreRedBlack/obj/Debug/netcoreapp3.1/*.cache
