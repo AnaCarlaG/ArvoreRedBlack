@@ -274,11 +274,6 @@ namespace ArvoreRedBlack
             return rotacao;
         }
 
-        public void setBalanceamento(No no)
-        {
-            no.balanceamento = (no.getAltura(no.filhoDireito) - no.getAltura(no.filhoEsquerdo));
-        }
-
         public void print(int max_altura, int n)
         {
             n += 1;
