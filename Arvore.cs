@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ArvoreAVL
+namespace ArvoreRedBlack
 {
     public class Arvore
     {
@@ -13,11 +13,16 @@ namespace ArvoreAVL
             if (this.raiz == null)
             {
                 this.raiz = new No(key, dados, null);
+                this.raiz.cor = "black";
             }
             else
             {
                 No novoNo = this.raiz.Persistir(key, dados);
-                this.VerificarBalanceamento(novoNo);
+                this.isVermelhoConsecutivo(novoNo);
+                if (this.raiz.cor == "red")
+                {
+                    this.raiz.cor = "black";
+                }
             }
         }
 
@@ -124,130 +129,149 @@ namespace ArvoreAVL
             return this.raiz.Consultar(key);
         }
 
-        public void VerificarBalanceamento(No atual)
+        public void VerificarQuaseBalanceamento(No atual)
         {
-            setBalanceamento(atual);
-            var balanceamento = atual.balanceamento;
+            var avo = atual.noPai != null ? atual.noPai.noPai : null;
 
-            if(balanceamento == -2)
+            if (avo != null)
             {
-                if(atual.getAltura(atual.filhoEsquerdo.filhoEsquerdo) >= atual.getAltura(atual.filhoEsquerdo.filhoDireito))
+                if (avo.filhoDireito.key == atual.noPai.key)
                 {
-                    Console.WriteLine("A árvore ta desbalanceada e receberá rotação simples para a direita");
-                    atual = RotacaoSimplesDireita(atual);
+                    if (atual.noPai.filhoDireito != null && atual.noPai.filhoDireito.key == atual.key)
+                    {
+                        this.RotacaoSimplesEsquerda(atual);
+                        Console.WriteLine("A árvore ta desbalanceada e receberá rotação simples para a esquerda");
+                        this.InvertColor(atual.noPai);
+                        this.InvertColor(avo);
+                    }
+                    else
+                    {
+                        this.DuplaRotacaoDireitaEsquerda(atual);
+                        Console.WriteLine("A árvore ta desbalanceada e receberá rotação dupla para a esquerda");
+                        this.InvertColor(atual);
+                        this.InvertColor(avo);
+                    }
                 }
                 else
                 {
-                    Console.WriteLine("A árvore ta desbalanceada e receberá rotação dupla para a esquerda");
-                    atual = DuplaRotacaoEsquerdaDireita(atual);
+                    if (atual.noPai.filhoEsquerdo != null && atual.noPai.filhoEsquerdo.key == atual.key)
+                    {
+                        this.RotacaoSimplesDireita(atual);
+                        Console.WriteLine("A árvore ta desbalanceada e receberá rotação simples para a direita");
+                        this.InvertColor(atual.noPai);
+                        this.InvertColor(avo);
+                    }
+                    else
+                    {
+                        this.DuplaRotacaoEsquerdaDireita(atual);
+                        Console.WriteLine("A árvore ta desbalanceada e receberá rotação dupla para a direita");
+                        this.InvertColor(atual);
+                        this.InvertColor(avo);
+                    }
                 }
             }
-            else if (balanceamento == 2)
+            if (atual.noPai != null)
             {
-                if(atual.getAltura(atual.filhoDireito.filhoDireito) >= atual.getAltura(atual.filhoDireito.filhoEsquerdo))
-                {
-                    Console.WriteLine("A árvore ta desbalanceada e receberá rotação simples para a esquerda");
-                    atual = RotacaoSimplesEsquerda(atual);
-                }
-                else 
-                {
-                    Console.WriteLine("A árvore ta desbalanceada e receberá rotação dupla para a direita");
-                    atual = DuplaRotacaoDireitaEsquerda(atual);
-                }
-            }
-
-            if(atual.noPai != null)
-            {
-                VerificarBalanceamento(atual.noPai);
+                this.isVermelhoConsecutivo(atual.noPai.noPai);
             }
             else
             {
                 this.raiz = atual;
             }
         }
-
         public No RotacaoSimplesDireita(No inicial)
         {
-            this.print(2, 2);
-            Console.WriteLine();
-            No esquerda = inicial.filhoEsquerdo;
-            esquerda.noPai = inicial.noPai;
+            No pai = inicial.noPai;
+            No avo = pai.noPai;
 
-            inicial.filhoEsquerdo = esquerda.filhoDireito;
+            No t1 = inicial.filhoEsquerdo,
+                t3 = pai.filhoDireito;
 
-            if(inicial.filhoEsquerdo != null)
+            avo.filhoEsquerdo = t3;
+
+            if (t3 != null)
             {
-                inicial.filhoEsquerdo.noPai = inicial;
+                t3.noPai = avo;
             }
 
-            esquerda.filhoDireito = inicial;
-            inicial.noPai = esquerda;
+            pai.noPai = avo.noPai;
 
-            if(esquerda.noPai != null)
+            if (pai.noPai != null)
             {
-                if(esquerda.noPai.filhoDireito == inicial)
+                if (pai.noPai.key > pai.key)
                 {
-                    esquerda.noPai.filhoDireito = esquerda;
+                    pai.noPai.filhoEsquerdo = pai;
                 }
-                else if(esquerda.noPai.filhoEsquerdo == inicial)
+                else
                 {
-                    esquerda.noPai.filhoEsquerdo = esquerda;
+                    pai.noPai.filhoDireito = pai;
                 }
             }
 
-            setBalanceamento(inicial);
-            setBalanceamento(esquerda);
-           // Console.WriteLine("Rotacao simples para a direita");
-            return esquerda;
+            avo.noPai = pai;
+            pai.filhoDireito = avo;
+
+            if (this.raiz.key == avo.key)
+            {
+                this.raiz = pai;
+            }
+
+            return inicial;
         }
 
         public No RotacaoSimplesEsquerda(No inicial)
         {
-            this.print(2, 2);
-            Console.WriteLine();
-            No direita = inicial.filhoDireito;
-            direita.noPai = inicial.noPai;
+            No pai = inicial.noPai;
+            No avo = pai.noPai;
 
-            inicial.filhoDireito = direita.filhoEsquerdo;
+            No t5 = inicial.filhoDireito,
+                    t3 = pai.filhoEsquerdo,
+                    t4 = inicial.filhoEsquerdo;
 
-            if(inicial.filhoDireito != null)
+            pai.noPai = avo.noPai;
+
+            if (pai.noPai != null)
             {
-                inicial.filhoDireito.noPai = inicial;
-            }
-
-            direita.filhoEsquerdo = inicial;
-            inicial.noPai = direita;
-
-            if(direita.noPai != null)
-            {
-                if(direita.noPai.filhoDireito == inicial)
+                if (pai.noPai.key > pai.key)
                 {
-                    direita.noPai.filhoDireito = direita;
+                    pai.noPai.filhoEsquerdo = pai;
                 }
-                else if( direita.noPai.filhoEsquerdo == inicial)
+                else
                 {
-                    direita.noPai.filhoEsquerdo = direita;
+                    pai.noPai.filhoDireito = pai;
                 }
             }
+            pai.filhoEsquerdo = avo;
+            avo.noPai = pai;
 
-            setBalanceamento(inicial);
-            setBalanceamento(direita);
-           // Console.WriteLine("Rotacao simples para a esquerda");
-            return direita;
+            avo.filhoDireito = t3;
+
+            if (t3 != null)
+            {
+                t3.noPai = avo;
+            }
+
+            if (this.raiz.key == avo.key)
+            {
+                this.raiz = pai;
+            }
+            return inicial;
         }
 
         public No DuplaRotacaoEsquerdaDireita(No inicial)
         {
-            inicial.filhoEsquerdo = RotacaoSimplesEsquerda(inicial.filhoEsquerdo);
-           // Console.WriteLine("Rotacao Dula para a direita");
-            return RotacaoSimplesDireita(inicial);
+            var rotacao = RotacaoSimplesEsquerda(inicial);
+            RotacaoSimplesDireita(rotacao);
+
+            return rotacao;
         }
 
         public No DuplaRotacaoDireitaEsquerda(No inicial)
         {
-            inicial.filhoDireito = RotacaoSimplesDireita(inicial.filhoDireito);
-            //Console.WriteLine("Rotacao Dula para a esquerda");
-            return RotacaoSimplesEsquerda(inicial);
+            var rotacao = RotacaoSimplesDireita(inicial);
+            RotacaoSimplesEsquerda(rotacao);
+
+            return rotacao;
         }
 
         public void setBalanceamento(No no)
@@ -257,6 +281,7 @@ namespace ArvoreAVL
 
         public void print(int max_altura, int n)
         {
+            n += 1;
             Dictionary<int, List<No>> listaNiveis = new Dictionary<int, List<No>>();
             //int max_altura = 3;
 
@@ -296,14 +321,12 @@ namespace ArvoreAVL
                     }
                     else
                     {
-                        sb.Append(this.centerString(no.dados.ToString(), size));
+                        sb.Append(this.centerString(no.dados.ToString() + no.cor[0], size));
                     }
                 }
                 sb.Append("|");
                 Console.WriteLine(sb.ToString());
             }
-
-
         }
 
         private string centerString(string value, int size)
@@ -332,6 +355,73 @@ namespace ArvoreAVL
             }
 
             return sb.ToString();
+        }
+
+        public void InvertColor(No node)
+        {
+            if (node != null)
+            {
+                if (node.cor == "black")
+                {
+                    node.cor = "red";
+                }
+                else
+                {
+                    node.cor = "black";
+                }
+            }
+        }
+
+        public void UncleRed(No node)
+        {
+            var avo = node.noPai.noPai;
+
+            this.InvertColor(avo);
+            this.InvertColor(avo.filhoDireito);
+            this.InvertColor(avo.filhoEsquerdo);
+        }
+        public void UncleBlack(No node)
+        {
+            this.VerificarQuaseBalanceamento(node);
+        }
+        public void isVermelhoConsecutivo(No node)
+        {
+            if (node == null) return;
+            var avo = node.noPai != null ? node.noPai.noPai : null;
+
+            if (node.noPai != null && node.noPai.cor == "red")
+            {
+                if (avo != null)
+                {
+                    if (avo.filhoEsquerdo != null && avo.filhoDireito != null)
+                    {
+                        if (avo.filhoDireito.key == node.noPai.key)
+                        {
+                            if (avo.filhoEsquerdo.cor == "red")
+                            {
+                                this.UncleRed(node);
+                            }
+                            else
+                            {
+                                UncleBlack(node);
+                            }
+                        }
+                        else if (avo.filhoDireito.cor == "red")
+                        {
+                            this.UncleRed(node);
+                        }
+                        else
+                        {
+                            this.UncleBlack(node);
+                        }
+                    }
+                    else
+                    {
+                        this.UncleBlack(node);
+                    }
+                    this.isVermelhoConsecutivo(avo);
+                }
+            }
         }
     }
 }

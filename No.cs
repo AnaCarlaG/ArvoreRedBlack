@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ArvoreAVL
+namespace ArvoreRedBlack
 {
     public class No
     {
@@ -11,12 +11,12 @@ namespace ArvoreAVL
             this.key = key;
             this.dados = dados;
             this.noPai = noPai;
-            this.balanceamento = 0;
+            this.cor = "red";
         }
 
         public int dados { get; set; }
         public int key { get; set; }
-        public int balanceamento { get; set; }
+        public string cor { get; set; }
         public No filhoEsquerdo { get; set; }
         public No filhoDireito { get; set; }
         public No noPai { get; set; }
@@ -157,34 +157,5 @@ namespace ArvoreAVL
                 return alturaFilhoEsquerdo + 1;
             }
         }
-
-        public int getAltura(No atual)
-        {
-            if (atual == null)
-            {
-                return -1;
-            }
-
-            if (atual.filhoEsquerdo == null && atual.filhoDireito == null)
-            {
-                return 0;
-
-            }
-            else if (atual.filhoEsquerdo == null)
-            {
-                return 1 + getAltura(atual.filhoDireito);
-
-            }
-            else if (atual.filhoDireito == null)
-            {
-                return 1 + getAltura(atual.filhoEsquerdo);
-
-            }
-            else
-            {
-                return 1 + Math.Max(getAltura(atual.filhoEsquerdo), getAltura(atual.filhoDireito));
-            }
         }
-
-    }
 }
